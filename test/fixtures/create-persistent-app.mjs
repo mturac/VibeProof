@@ -1,0 +1,5 @@
+import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { spawnSync } from "node:child_process";
+function git(cwd,...args){const r=spawnSync("git",args,{cwd,encoding:"utf8"});if(r.status!==0)throw new Error(r.stderr);return r.stdout.trim();}
+export async function createPersistentApp(root,{resetOnStart=false,badSelector=false}={}){const source=join(root,"source");await mkdir(join(source,"app"),{recursive:true});await cp(new URL("../../fixtures/persistent-app/",import.meta.url),join(source,"app"),{recursive:true});const config=JSON.parse(await readFile(new URL("../../examples/vibeproof.config.json",import.meta.url),"utf8"));if(resetOnStart)config.commands.start.env.PERSISTENCE="disabled";if(badSelector)config.browser.journey[1].selector="#missing";await writeFile(join(source,"vibeproof.config.json"),JSON.stringify(config,null,2));git(source,"init","-b","main");git(source,"config","user.email","fixture@example.com");git(source,"config","user.name","Fixture");git(source,"add",".");git(source,"commit","-m","fixture");return{source,commitSha:git(source,"rev-parse","HEAD")};}

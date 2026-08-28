@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/vibeproof-config.schema.json",
+  "version": 1,
+  "project": { "name": "persistent-product", "root": "app" },
+  "commands": {
+    "install": { "argv": ["npm", "ci"], "timeoutMs": 120000 },
+    "build": { "argv": ["npm", "run", "build"], "timeoutMs": 120000 },
+    "start": {
+      "argv": ["npm", "start"],
+      "env": { "PORT": "${VIBEPROOF_PORT}", "PERSISTENCE": "enabled" },
+      "readyUrl": "http://127.0.0.1:${VIBEPROOF_PORT}/health",
+      "readyTimeoutMs": 10000
+    }
+  },
+  "browser": {
+    "baseUrl": "http://127.0.0.1:${VIBEPROOF_PORT}",
+    "defaultTimeoutMs": 5000,
+    "journey": [
+      { "op": "goto", "path": "/" },
+      { "op": "fill", "selector": "#title", "value": "Persistent proof" },
+      { "op": "click", "selector": "#save" },
+      { "op": "waitForText", "text": "Saved: Persistent proof" },
+      { "op": "screenshot", "name": "created" }
+    ],
+    "afterRestart": [
+      { "op": "goto", "path": "/" },
+      { "op": "waitForText", "text": "Current: Persistent proof" },
+      { "op": "screenshot", "name": "after-restart" }
+    ]
+  },
+  "proof": { "requireCleanClone": true, "requireBuild": true, "requireBrowser": true, "requireRestart": true },
+  "output": { "keepWorkspaceOnFailure": true, "keepWorkspaceOnSuccess": false }
+}
