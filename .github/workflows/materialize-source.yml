@@ -4,7 +4,7 @@ on:
   push:
     branches: [feat/vibeproof-core]
     paths:
-      - ".bootstrap/source.tar.gz.b64"
+      - ".bootstrap/source.*"
       - ".github/workflows/materialize-source.yml"
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base64 --decode .bootstrap/source.tar.gz.b64 > /tmp/vibeproof.tar.gz
+          cat .bootstrap/source.* | tr -d '\r\n' | base64 --decode > /tmp/vibeproof.tar.gz
           echo "7c6df5c3afe0d73b3bd97f73419298f75af9b8e7207a845653520643ff693f34  /tmp/vibeproof.tar.gz" | sha256sum --check --strict
           tar -tzf /tmp/vibeproof.tar.gz > /tmp/vibeproof-files.txt
           grep -Fxq './package.json' /tmp/vibeproof-files.txt
