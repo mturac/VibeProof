@@ -1,0 +1,10 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { collectEvidenceArtifacts, inspectReceipt, portableSource, renderHtmlReport, renderMarkdownReport, sealReceipt } from "../dist/index.js";
+function draft(){return{receiptVersion:1,runId:"r",projectName:"p",createdAt:"2026-01-01T00:00:00.000Z",source:{requested:"local:p",requestedRef:"a".repeat(40),commitSha:"a".repeat(40),cleanClone:true,projectRoot:"."},environment:{platform:"linux",architecture:"x64",nodeVersion:"v22"},stages:["source","install","build","runtime","browser","restart"].map(name=>({name,required:name!=="restart",status:name==="restart"?"skipped":"passed",evidence:[]})),browser:{journey:[],afterRestart:[]},artifacts:[],claims:{sourceVerified:true,installPassed:true,buildPassed:true,runtimeReady:true,browserJourneyPassed:true,restartPassed:null,verified:true},result:{status:"verified",failedStage:null}};}
+test("receipt sealing and inspection are canonical",()=>{const receipt=sealReceipt(draft());assert.equal(inspectReceipt(receipt).integrity,"valid");assert.equal(inspectReceipt({...receipt,projectName:"changed"}).integrity,"invalid");assert.match(renderMarkdownReport(receipt),new RegExp(receipt.receiptHash));assert.match(renderHtmlReport(receipt),/VERIFIED/);});
+test("portableSource removes credentials and host paths",()=>{assert.equal(portableSource("/Users/me/private/repo"),"local:repo");assert.equal(portableSource("https://user:secret@example.com/x.git"),"https://example.com/x.git");});
+test("evidence collection excludes derived outputs",async()=>{const root=await mkdtemp(join(tmpdir(),"vp-artifacts-"));try{await mkdir(join(root,"logs"));for(const [name,value] of [["contract.snapshot.json","{}"],["receipt.json","{}"],["report.md","x"],["report.html","x"],["logs/a.log","ok"]])await writeFile(join(root,name),value);assert.deepEqual((await collectEvidenceArtifacts(root)).map(x=>x.path),["contract.snapshot.json","logs/a.log"]);}finally{await rm(root,{recursive:true,force:true});}});

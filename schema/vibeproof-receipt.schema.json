@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/mturac/VibeProof/main/schema/vibeproof-receipt.schema.json",
+  "title": "VibeProof receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["receiptVersion", "runId", "projectName", "createdAt", "source", "environment", "stages", "browser", "artifacts", "claims", "result", "receiptHash"],
+  "properties": {
+    "receiptVersion": { "const": 1 }, "runId": { "type": "string", "minLength": 1 }, "projectName": { "type": "string", "minLength": 1 }, "createdAt": { "type": "string", "format": "date-time" },
+    "source": { "type": "object", "additionalProperties": false, "required": ["requested", "requestedRef", "commitSha", "cleanClone", "projectRoot"], "properties": { "requested": { "type": "string", "minLength": 1 }, "requestedRef": { "type": "string", "minLength": 1 }, "commitSha": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" }, "cleanClone": { "type": "boolean" }, "projectRoot": { "type": "string", "minLength": 1 } } },
+    "environment": { "type": "object", "additionalProperties": false, "required": ["platform", "architecture", "nodeVersion"], "properties": { "platform": { "type": "string" }, "architecture": { "type": "string" }, "nodeVersion": { "type": "string" }, "browserExecutable": { "type": "string" }, "browserVersion": { "type": "string" } } },
+    "stages": { "type": "array", "minItems": 6, "maxItems": 6, "items": { "$ref": "#/$defs/stage" } },
+    "browser": { "type": "object", "additionalProperties": false, "required": ["journey", "afterRestart"], "properties": { "journey": { "type": "array", "items": { "$ref": "#/$defs/browserResult" } }, "afterRestart": { "type": "array", "items": { "$ref": "#/$defs/browserResult" } } } },
+    "artifacts": { "type": "array", "items": { "$ref": "#/$defs/artifact" } },
+    "claims": { "type": "object", "additionalProperties": false, "required": ["sourceVerified", "installPassed", "buildPassed", "runtimeReady", "browserJourneyPassed", "restartPassed", "verified"], "properties": { "sourceVerified": { "type": "boolean" }, "installPassed": { "type": ["boolean", "null"] }, "buildPassed": { "type": ["boolean", "null"] }, "runtimeReady": { "type": "boolean" }, "browserJourneyPassed": { "type": "boolean" }, "restartPassed": { "type": ["boolean", "null"] }, "verified": { "type": "boolean" } } },
+    "result": { "type": "object", "additionalProperties": false, "required": ["status", "failedStage"], "properties": { "status": { "enum": ["verified", "failed"] }, "failedStage": { "enum": ["source", "install", "build", "runtime", "browser", "restart", null] } } },
+    "receiptHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "$defs": {
+    "stage": { "type": "object", "additionalProperties": false, "required": ["name", "required", "status", "evidence"], "properties": { "name": { "enum": ["source", "install", "build", "runtime", "browser", "restart"] }, "required": { "type": "boolean" }, "status": { "enum": ["passed", "failed", "skipped"] }, "startedAt": { "type": "string", "format": "date-time" }, "finishedAt": { "type": "string", "format": "date-time" }, "durationMs": { "type": "integer", "minimum": 0 }, "evidence": { "type": "array", "items": { "type": "string" } }, "error": { "type": "object", "additionalProperties": false, "required": ["code", "message"], "properties": { "code": { "type": "string" }, "message": { "type": "string" } } } } },
+    "browserResult": { "type": "object", "additionalProperties": false, "required": ["index", "op", "status", "startedAt", "finishedAt", "durationMs"], "properties": { "index": { "type": "integer", "minimum": 0 }, "op": { "enum": ["goto", "waitForSelector", "waitForText", "assertText", "assertSelector", "fill", "click", "assertUrl", "screenshot"] }, "status": { "enum": ["passed", "failed"] }, "startedAt": { "type": "string" }, "finishedAt": { "type": "string" }, "durationMs": { "type": "integer", "minimum": 0 }, "evidence": { "type": "string" }, "error": { "type": "string" } } },
+    "artifact": { "type": "object", "additionalProperties": false, "required": ["path", "mediaType", "bytes", "sha256"], "properties": { "path": { "type": "string" }, "mediaType": { "type": "string" }, "bytes": { "type": "integer", "minimum": 0 }, "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } } }
+  }
+}

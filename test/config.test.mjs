@@ -1,0 +1,10 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { expandVariables, isLoopbackUrl, parseConfig } from "../dist/index.js";
+const valid={version:1,project:{name:"app",root:"."},commands:{start:{argv:["node","server.mjs"],env:{PORT:"${VIBEPROOF_PORT}"},readyUrl:"http://127.0.0.1:${VIBEPROOF_PORT}/health"}},browser:{baseUrl:"http://127.0.0.1:${VIBEPROOF_PORT}",journey:[{op:"goto",path:"/"},{op:"assertSelector",selector:"body"}]}};
+test("parseConfig accepts strict valid contract",()=>{const config=parseConfig(valid);assert.equal(config.project.root,".");assert.equal(config.proof.requireBrowser,true);assert.ok(config.security.inheritEnv.includes("PATH"));});
+test("parseConfig rejects unknown keys",()=>{assert.throws(()=>parseConfig({...valid,surprise:true}),/unknown key/);});
+test("parseConfig rejects command strings, traversal, and invalid restart",()=>{assert.throws(()=>parseConfig({...valid,commands:{start:"npm start"}}),/object/);assert.throws(()=>parseConfig({...valid,project:{name:"x",root:"../x"}}),/escape/);assert.throws(()=>parseConfig({...valid,proof:{requireRestart:true}}),/afterRestart/);});
+test("parseConfig rejects remote URLs by default",()=>{assert.throws(()=>parseConfig({...valid,browser:{...valid.browser,baseUrl:"https://example.com"}}),/loopback/);});
+test("expandVariables is strict",()=>{assert.equal(expandVariables("http://x:${VIBEPROOF_PORT}",{VIBEPROOF_PORT:"42"}),"http://x:42");assert.throws(()=>expandVariables("${MISSING}",{}),/not defined/);});
+test("isLoopbackUrl accepts loopback only",()=>{assert.equal(isLoopbackUrl("http://127.0.0.1:3000"),true);assert.equal(isLoopbackUrl("http://localhost:3000"),true);assert.equal(isLoopbackUrl("https://example.com"),false);});

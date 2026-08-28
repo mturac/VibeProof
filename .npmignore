@@ -1,0 +1,9 @@
+src/
+test/
+fixtures/
+scripts/
+docs/superpowers/
+.github/
+tsconfig*.json
+.gitignore
+.npmignore

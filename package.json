@@ -1,0 +1,27 @@
+{
+  "name": "@mturac/vibeproof",
+  "version": "0.1.0",
+  "description": "Clean-clone, browser, restart, and persistence proof for vibe-coded web products.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "Mehmet Turac",
+  "repository": { "type": "git", "url": "git+https://github.com/mturac/VibeProof.git" },
+  "bugs": { "url": "https://github.com/mturac/VibeProof/issues" },
+  "homepage": "https://github.com/mturac/VibeProof#readme",
+  "keywords": ["vibe-coding", "coding-agent", "clean-clone", "browser-testing", "delivery-proof", "restart-proof"],
+  "engines": { "node": ">=22" },
+  "files": ["bin/", "dist/", "schema/", "examples/", "docs/assets/", "README.md", "LICENSE", "NOTICE", "CHANGELOG.md"],
+  "bin": { "vibeproof": "./bin/vibeproof.mjs" },
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "npm run build && node --check bin/vibeproof.mjs",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "test:types": "tsc -p tsconfig.type-tests.json",
+    "verify:assets": "node scripts/verify-assets.mjs",
+    "verify:package": "node scripts/package-smoke.mjs",
+    "verify": "npm run check && npm run test:types && node --test test/*.test.mjs && npm run verify:assets && npm run verify:package"
+  },
+  "devDependencies": { "typescript": "5.8.3" }
+}
